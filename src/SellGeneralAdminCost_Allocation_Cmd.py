@@ -4359,6 +4359,23 @@ def create_cp_step0008_group_concat(pszStep0007Path: str) -> None:
     shutil.copy2(pszOutputPath, pszTargetPath)
 
 
+def create_cp_step0007_file_0001(pszStep0006Path: str) -> None:
+    create_cp_step0007_file_company(pszStep0006Path, "0001_CP別")
+
+
+def create_cp_step0007_file_0002(pszStep0006Path: str) -> None:
+    create_cp_step0007_file_company(pszStep0006Path, "0002_CP別")
+    pszTargetDirectory = os.path.join(os.path.dirname(__file__), "0002_CP別_step0007")
+    os.makedirs(pszTargetDirectory, exist_ok=True)
+    pszOutputPath = os.path.join(
+        os.path.dirname(pszStep0006Path),
+        os.path.basename(pszStep0006Path).replace("_step0006_", "_step0007_"),
+    )
+    if os.path.isfile(pszOutputPath):
+        pszTargetPath = os.path.join(pszTargetDirectory, os.path.basename(pszOutputPath))
+        shutil.copy2(pszOutputPath, pszTargetPath)
+
+
 def create_empty_previous_fiscal_cp_step0005_vertical(
     pszDirectory: str,
     objStart: Tuple[int, int],
