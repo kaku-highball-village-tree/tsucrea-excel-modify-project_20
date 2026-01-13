@@ -4273,6 +4273,107 @@ def create_cp_step0007_file_0002(pszStep0006Path: str) -> None:
     if os.path.isfile(pszOutputPath):
         pszTargetPath = os.path.join(pszTargetDirectory, os.path.basename(pszOutputPath))
         shutil.copy2(pszOutputPath, pszTargetPath)
+        create_cp_step0008_group_concat(pszOutputPath)
+
+
+def create_cp_step0008_group_concat(pszStep0007Path: str) -> None:
+    pszFileName = os.path.basename(pszStep0007Path)
+    pszDirectory = os.path.dirname(pszStep0007Path)
+    objSingleMatch = re.match(
+        r"0002_CP別_step0007_単月_損益計算書_(\d{4})年(\d{2})月_(.+)_vertical\.tsv",
+        pszFileName,
+    )
+    objCumulativeMatch = re.match(
+        r"0002_CP別_step0007_累計_損益計算書_(\d{4})年(\d{2})月-(\d{4})年(\d{2})月_(.+)_vertical\.tsv",
+        pszFileName,
+    )
+    objGroupOrder = [
+        "受託事業-施設運営",
+        "受託事業-その他",
+        "自社-施設運営",
+        "自社-その他",
+    ]
+    pszLabel = ""
+    pszOutputPath = ""
+    objSourcePaths: List[str] = []
+    if objSingleMatch:
+        iYear = int(objSingleMatch.group(1))
+        iMonth = int(objSingleMatch.group(2))
+        pszLabel = f"{iYear}年{iMonth:02d}月"
+        objSourcePaths = [
+            os.path.join(
+                pszDirectory,
+                (
+                    "0002_CP別_step0007_単月_損益計算書_"
+                    f"{pszLabel}_{pszGroup}_vertical.tsv"
+                ),
+            )
+            for pszGroup in objGroupOrder
+        ]
+        pszOutputPath = os.path.join(
+            pszDirectory,
+            (
+                "0002_CP別_step0008_単月_損益計算書_"
+                f"{pszLabel}_計上グループ_vertical.tsv"
+            ),
+        )
+    elif objCumulativeMatch:
+        iStartYear = int(objCumulativeMatch.group(1))
+        iStartMonth = int(objCumulativeMatch.group(2))
+        iEndYear = int(objCumulativeMatch.group(3))
+        iEndMonth = int(objCumulativeMatch.group(4))
+        pszLabel = f"{iStartYear}年{iStartMonth:02d}月-{iEndYear}年{iEndMonth:02d}月"
+        objSourcePaths = [
+            os.path.join(
+                pszDirectory,
+                (
+                    "0002_CP別_step0007_累計_損益計算書_"
+                    f"{pszLabel}_{pszGroup}_vertical.tsv"
+                ),
+            )
+            for pszGroup in objGroupOrder
+        ]
+        pszOutputPath = os.path.join(
+            pszDirectory,
+            (
+                "0002_CP別_step0008_累計_損益計算書_"
+                f"{pszLabel}_計上グループ_vertical.tsv"
+            ),
+        )
+    else:
+        return
+
+    if not objSourcePaths:
+        return
+    if not all(os.path.isfile(pszPath) for pszPath in objSourcePaths):
+        return
+
+    objOutputRows: List[List[str]] = []
+    for pszPath in objSourcePaths:
+        objOutputRows.extend(read_tsv_rows(pszPath))
+    write_tsv_rows(pszOutputPath, objOutputRows)
+
+    pszTargetDirectory = os.path.join(os.path.dirname(__file__), "0002_CP別_step0008")
+    os.makedirs(pszTargetDirectory, exist_ok=True)
+    pszTargetPath = os.path.join(pszTargetDirectory, os.path.basename(pszOutputPath))
+    shutil.copy2(pszOutputPath, pszTargetPath)
+
+
+def create_cp_step0007_file_0001(pszStep0006Path: str) -> None:
+    create_cp_step0007_file_company(pszStep0006Path, "0001_CP別")
+
+
+def create_cp_step0007_file_0002(pszStep0006Path: str) -> None:
+    create_cp_step0007_file_company(pszStep0006Path, "0002_CP別")
+    pszTargetDirectory = os.path.join(os.path.dirname(__file__), "0002_CP別_step0007")
+    os.makedirs(pszTargetDirectory, exist_ok=True)
+    pszOutputPath = os.path.join(
+        os.path.dirname(pszStep0006Path),
+        os.path.basename(pszStep0006Path).replace("_step0006_", "_step0007_"),
+    )
+    if os.path.isfile(pszOutputPath):
+        pszTargetPath = os.path.join(pszTargetDirectory, os.path.basename(pszOutputPath))
+        shutil.copy2(pszOutputPath, pszTargetPath)
 
 
 def create_empty_previous_fiscal_cp_step0005_vertical(
